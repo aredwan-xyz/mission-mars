@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MISSION MARS: Grand Theft Rover — NASA Space Apps 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=JetBrains+Mono:wght@400;600;700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=4" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <!-- 3D WebGL Viewport -->
+  <div id="canvas-container" aria-label="3D Interactive Martian Open World"></div>
+
+  <!-- ChemCam / Visor Reticle & Scan Overlay -->
+  <div id="reticle" class="reticle">
+    <div class="reticle-ring"></div>
+    <div class="reticle-cross-h"></div>
+    <div class="reticle-cross-v"></div>
+    <div id="reticle-label" class="reticle-label">CHEMCAM LIBS READY [SPACE / CLICK]</div>
+  </div>
+
+  <!-- Auto-Tour Cinematic Banner (Visible when Judge Autopilot is active) -->
+  <div id="autotour-banner" class="autotour-banner" hidden>
+    <span class="autotour-dot"></span>
+    <span id="autotour-status">JUDGE AUTO-TOUR ACTIVE: A* Autonomous Rover Navigation &amp; LIBS Spectroscopy</span>
+    <button type="button" class="hud-btn" id="btn-stop-autotour">TAKE MANUAL CONTROL [P]</button>
+  </div>
+
+  <!-- Top-Left Mission Tracker & Telemetry Bar -->
+  <header class="hud-top-left">
+    <div class="brand-badge">
+      <span class="nasa-pill">NASA SPACE APPS 2026</span>
+      <span class="game-title">MISSION MARS <small>GRAND THEFT ROVER</small></span>
+    </div>
+
+    <div class="mission-box" id="mission-card">
+      <div class="mission-header">
+        <span class="mission-tag" id="mission-index-tag">MISSION 01 / 05</span>
+        <span class="mission-distance" id="mission-dist-badge">255 m</span>
+      </div>
+      <h1 class="mission-name" id="mission-title">Ghosts of Octavia: Heat Shield Salvage</h1>
+      <p class="mission-objective" id="mission-desc">
+        Follow the glowing 3D A* GPS chevrons to the discarded Perseverance Heat Shield. Scan with [SPACE] and press [E] to inspect weathering &amp; salvage or preserve.
+      </p>
+      <div class="mission-actions">
+        <button type="button" class="hud-btn" id="btn-prev-mission" title="Previous Mission">&larr;</button>
+        <button type="button" class="hud-btn hud-btn-accent" id="btn-route-mission">3D GPS CHEVRONS</button>
+        <button type="button" class="hud-btn" id="btn-next-mission" title="Next Mission">&rarr;</button>
+        <button type="button" class="hud-btn hud-btn-gold" id="btn-route-shelter" title="Route to Lava Tube Radiation Shelter">🛡️ SHELTER</button>
+      </div>
+    </div>
+
+    <!-- Live MEDA / Mars Environmental Telemetry Ticker -->
+    <div class="telemetry-strip" id="telemetry-strip">
+      <div class="tele-item">
+        <span class="tele-label">SOL / LMST</span>
+        <span class="tele-val" id="tele-sol">1328 • 14:20</span>
+      </div>
+      <div class="tele-item">
+        <span class="tele-label">TEMP</span>
+        <span class="tele-val" id="tele-temp">-22°C</span>
+      </div>
+      <div class="tele-item">
+        <span class="tele-label">SOLAR FLUX</span>
+        <span class="tele-val" id="tele-pressure">540 W/m²</span>
+      </div>
+      <div class="tele-item">
+        <span class="tele-label">SLOPE</span>
+        <span class="tele-val" id="tele-slope">2.4°</span>
+      </div>
+      <div class="tele-item">
+        <span class="tele-label">ELEV (MOLA)</span>
+        <span class="tele-val" id="tele-elev">-2,540 m</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Top-Right GTA-Style Hazard Stars, Credits & Active Tool -->
+  <aside class="hud-top-right">
+    <!-- 5-Star Martian Environmental Hazard Level -->
+    <div class="hazard-row" title="Martian Environmental Hazard Level (Slope, Dust Storm, Radiation, Night Freeze)">
+      <span class="hazard-title" id="hazard-reason">HAZARD LEVEL: NOMINAL</span>
+      <div class="hazard-stars" id="hazard-stars" aria-label="Hazard Star Rating">
+        <span class="star" data-star="1">★</span>
+        <span class="star" data-star="2">★</span>
+        <span class="star" data-star="3">★</span>
+        <span class="star" data-star="4">★</span>
+        <span class="star" data-star="5">★</span>
+      </div>
+    </div>
+
+    <!-- GTA-Style Science Data & Salvage Counters -->
+    <div class="stats-stack">
+      <div class="stat-money">
+        <span class="stat-prefix">DATA</span>
+        <span id="stat-science">1,250</span>
+        <span class="stat-unit">MB</span>
+      </div>
+      <div class="stat-salvage">
+        <span class="stat-prefix">HERITAGE / SALVAGE</span>
+        <span id="stat-artifacts">0 / 5</span>
+      </div>
+    </div>
+
+    <!-- Active Unit & Loadout Card -->
+    <div class="unit-badge-card">
+      <div class="unit-badge-top">
+        <span class="unit-mode-label">ACTIVE UNIT [1/2/3 or TAB]</span>
+        <span class="unit-gravity-tag" id="loadout-mass-tag">1,025 KG • 0.38G</span>
+      </div>
+      <div class="unit-name" id="active-unit-name">PERSEVERANCE ROVER</div>
+      <div class="unit-sub" id="active-unit-sub">MMRTG Nuclear • Standard Cleat Wheels</div>
+    </div>
+
+    <!-- Top Quick Controls -->
+    <div class="quick-buttons">
+      <button type="button" class="hud-btn hud-btn-gold" id="btn-autotour" title="Run Autonomous Judge Demo Tour (P)">
+        🎬 JUDGE AUTO-TOUR [P]
+      </button>
+      <button type="button" class="hud-btn hud-btn-accent" id="btn-open-garage" title="Open Rover Upgrade & Mission Design Garage (G)">
+        🔧 ROVER GARAGE [G]
+      </button>
+      <button type="button" class="hud-btn" id="btn-open-map" title="Open Tactical Martian Map (M)">
+        🗺️ TACTICAL MAP [M]
+      </button>
+      <button type="button" class="hud-btn" id="btn-sol-time" title="Cycle Martian Day / Blue Sunset / Night (T)">
+        ☀️ SOL: NOON [T]
+      </button>
+      <button type="button" class="hud-btn" id="btn-headlights" title="Toggle Volumetric Rover Headlights (L)">
+        🔦 LIGHTS: ON [L]
+      </button>
+      <button type="button" class="hud-btn" id="btn-weather-storm" title="Simulate Martian Dust Storm / Solar Particle Event">
+        🌪️ DUST STORM SIM
+      </button>
+      <button type="button" class="hud-btn" id="btn-radio-toggle" title="Cycle Mars Telemetry Sonification Radio (R)">
+        📻 DSN RADIO: OFF [R]
+      </button>
+      <button type="button" class="hud-btn" id="btn-open-dossier">
+        📡 NASA DOSSIER
+      </button>
+      <button type="button" class="hud-btn hud-btn-gold" id="btn-open-pitch" title="Open 7-Slide NASA Space Apps Judge Pitch Deck (I)">
+        📊 7-SLIDE PITCH [I]
+      </button>
+    </div>
+  </aside>
+
+  <!-- Context Action Prompt (GTA Style "Press F to Enter Rover" / "Press E to Salvage") -->
+  <div id="context-prompt" class="context-prompt" hidden>
+    <span class="key-cap" id="context-key">F</span>
+    <span id="context-text">ENTER PERSEVERANCE ROVER</span>
+  </div>
+
+  <!-- Upgraded ChemCam LIBS Spectral Graph & Mastcam-Z Picture-in-Picture Readout -->
+  <div id="scan-toast" class="scan-toast" hidden>
+    <div class="scan-toast-top">
+      <div class="mastcam-pip">
+        <canvas id="mastcam-canvas" width="92" height="72"></canvas>
+        <span class="pip-label">MASTCAM-Z PIP</span>
+      </div>
+      <div class="scan-info-col">
+        <div class="scan-toast-header">
+          <span class="scan-badge">SUPERCAM LIBS ATOMIC SPECTRUM</span>
+          <span id="scan-dist">14.2m</span>
+        </div>
+        <div class="scan-target-title" id="scan-title">Olivine-Rich Basalt Outcrop</div>
+        <div class="scan-composition" id="scan-comp">SiO₂: 45.2% • FeO: 18.9% • MgO: 14.1% • H₂O-Clay: 3.4%</div>
+        <canvas id="libs-spectrum-canvas" width="280" height="54"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- GTA V "MISSION PASSED" + Interactive 3D Artifact Heritage vs. Salvage Decision -->
+  <div id="mission-passed-overlay" class="mission-passed-overlay" hidden>
+    <div class="mp-inner">
+      <div class="mp-title" id="mp-banner-heading">ARTIFACT LOCATED</div>
+      <div class="mp-subtitle" id="mp-artifact-name">PERSEVERANCE HEAT SHIELD</div>
+      <div class="mp-respect" id="mp-respect-line">CHALLENGE #1: ABANDONED BUT NOT FORGOTTEN</div>
+
+      <div class="weathering-grid" id="mp-weathering-grid">
+        <div class="w-stat"><span>UV Degradation (since 2021)</span><strong id="w-uv">18.4%</strong></div>
+        <div class="w-stat"><span>Perchlorate Dust Coat</span><strong id="w-dust">1.6 mm</strong></div>
+        <div class="w-stat"><span>Micrometeorite Pitting</span><strong id="w-pit">Low (Intact)</strong></div>
+      </div>
+
+      <p class="mp-fact" id="mp-nasa-fact"></p>
+
+      <div class="mp-choice-row" id="mp-choice-row">
+        <button type="button" class="hud-btn hud-btn-accent mp-choice-btn" id="btn-choice-preserve">
+          🏛️ PRESERVE AS HERITAGE MONUMENT (+750 MB &amp; BEACON)
+        </button>
+        <button type="button" class="hud-btn hud-btn-gold mp-choice-btn" id="btn-choice-salvage">
+          🔧 RECYCLE TITANIUM &amp; SENSORS (+500 MB &amp; 100% PWR/HULL)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GTA V "WASTED / SIGNAL LOST" Overlay -->
+  <div id="wasted-overlay" class="wasted-overlay" hidden>
+    <div class="wasted-inner">
+      <div class="wasted-title">SIGNAL LOST</div>
+      <div class="wasted-sub" id="wasted-reason">ROVER CHASSIS ROLLOVER ON &gt;28° ESCARPMENT</div>
+      <button type="button" class="hud-btn hud-btn-gold mp-continue-btn" id="btn-wasted-recover">
+        EMERGENCY RECOVERY AT OCTAVIA BASE [ENTER]
+      </button>
+    </div>
+  </div>
+
+  <!-- GTA V Character / Vehicle Switch Wheel (Hold TAB or Click Unit Switch) -->
+  <div id="switch-wheel-overlay" class="switch-wheel-overlay" hidden>
+    <div class="wheel-title">SELECT MARTIAN UNIT</div>
+    <div class="wheel-grid">
+      <button type="button" class="wheel-segment active" data-unit="rover">
+        <span class="wheel-key">1</span>
+        <span class="wheel-icon">🛞</span>
+        <span class="wheel-name">PERSEVERANCE</span>
+        <span class="wheel-desc">All-Terrain 6x6 Rover &amp; LIBS Laser</span>
+      </button>
+      <button type="button" class="wheel-segment" data-unit="heli">
+        <span class="wheel-key">2</span>
+        <span class="wheel-icon">🚁</span>
+        <span class="wheel-name">INGENUITY</span>
+        <span class="wheel-desc">Coaxial Mars Helicopter Scout</span>
+      </button>
+      <button type="button" class="wheel-segment" data-unit="astro">
+        <span class="wheel-key">3</span>
+        <span class="wheel-icon">🧑‍🚀</span>
+        <span class="wheel-name">CMDR. VAL (EVA)</span>
+        <span class="wheel-desc">On-Foot Astronaut &amp; Salvage Specialist</span>
+      </button>
+    </div>
+    <div class="wheel-hint">Click a unit or press [1] [2] [3] for Sky-Cam Transition</div>
+  </div>
+
+  <!-- Bottom-Left GTA V Tilted Radar Minimap & Survival Bars -->
+  <section class="hud-bottom-left" aria-label="Radar Minimap and Vital Bars">
+    <div class="radar-frame" id="radar-frame" title="Click to open Full Tactical Map & A* Waypoint Router">
+      <canvas id="radar-canvas" width="260" height="185"></canvas>
+      <div class="radar-overlay-top">
+        <span id="radar-zone-name">JEZERO FLOOR (OCTAVIA E. BUTLER)</span>
+        <span id="radar-gps-dist">GPS: 255m</span>
+      </div>
+      <div class="radar-compass" id="radar-compass">N</div>
+    </div>
+    <!-- GTA V-Style 3-Bar Strip Under Minimap -->
+    <div class="vital-bars">
+      <div class="vital-bar-wrap" title="Chassis / Suit Structural Integrity">
+        <div class="vital-bar vital-health" id="bar-health" style="width: 100%"></div>
+      </div>
+      <div class="vital-bar-wrap" title="MMRTG / Solar Battery Charge">
+        <div class="vital-bar vital-battery" id="bar-battery" style="width: 100%"></div>
+      </div>
+      <div class="vital-bar-wrap" title="EVA Oxygen & Thermal Regulation">
+        <div class="vital-bar vital-o2" id="bar-o2" style="width: 100%"></div>
+      </div>
+    </div>
+    <div class="vital-labels">
+      <span id="label-health">HULL 100%</span>
+      <span id="label-battery">PWR 100%</span>
+      <span id="label-o2">O₂ / THERM 100%</span>
+    </div>
+  </section>
+
+  <!-- Bottom-Right Speedometer, Unit Switcher & Controls Legend -->
+  <section class="hud-bottom-right" aria-label="Vehicle Telemetry and Controls">
+    <div class="speedo-card">
+      <div class="speedo-main">
+        <span class="speedo-val" id="speedo-val">0.0</span>
+        <span class="speedo-unit">km/h</span>
+      </div>
+      <div class="speedo-meta">
+        <span id="alt-readout">AGL: 0.0m</span>
+        <span id="coord-readout">18.4447°N, 77.4508°E</span>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <span><kbd>WASD</kbd> Move</span>
+      <span><kbd>SHIFT</kbd> Boost/Up</span>
+      <span><kbd>SPACE</kbd> Laser/Jump</span>
+      <span><kbd>F</kbd> Enter/Exit</span>
+      <span><kbd>E</kbd> Salvage</span>
+      <span><kbd>G</kbd> Garage</span>
+      <span><kbd>T</kbd> Sol Time</span>
+      <span><kbd>L</kbd> Lights</span>
+      <span><kbd>P</kbd> Auto-Tour</span>
+      <span><kbd>M</kbd> Map</span>
+    </div>
+  </section>
+
+  <!-- Native Modal Dialog 1: Full-Screen Interactive Martian Survival Map & A* Path Planner -->
+  <dialog id="mapDialog" closedby="any" aria-labelledby="mapDialogTitle">
+    <div class="modal-shell map-modal-shell">
+      <header class="modal-header">
+        <div>
+          <span class="nasa-pill">CHALLENGE #11: MARTIAN SURVIVAL MAP &amp; A* ROUTER</span>
+          <h2 id="mapDialogTitle">Jezero Crater Tactical DEM &amp; Slope-Safe Waypoint Planner</h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="hud-btn" autofocus>CLOSE [ESC]</button>
+        </form>
+      </header>
+
+      <div class="map-modal-body">
+        <div class="tactical-map-canvas-wrap">
+          <canvas id="tactical-map-canvas" width="640" height="460"></canvas>
+          <div class="map-click-hint">Click anywhere on the map or select a NASA Site on the right to compute a 3D A* Slope-Safe &amp; Radiation-Aware route.</div>
+        </div>
+        <div class="tactical-map-sidebar">
+          <div class="layer-selector">
+            <span class="sidebar-section-title">NASA DATA OVERLAY LAYER</span>
+            <div class="layer-btn-group">
+              <button type="button" class="hud-btn active" data-layer="mola">MOLA Elevation</button>
+              <button type="button" class="hud-btn" data-layer="slope">Slope Hazard (&gt;18°)</button>
+              <button type="button" class="hud-btn" data-layer="ice">SWIM Water-Ice</button>
+            </div>
+          </div>
+
+          <div class="route-telemetry-box">
+            <span class="sidebar-section-title">A* PATHFINDING ANALYSIS</span>
+            <div class="route-stat-grid">
+              <div><span>Route Distance:</span> <strong id="route-stat-dist">255 m</strong></div>
+              <div><span>Max Slope Encountered:</span> <strong id="route-stat-slope">7.2° (SAFE)</strong></div>
+              <div><span>Est. Battery Drain:</span> <strong id="route-stat-pwr">4.1%</strong></div>
+              <div><span>Radiation Exposure:</span> <strong id="route-stat-rad">0.24 mSv</strong></div>
+            </div>
+          </div>
+
+          <div class="poi-list-box">
+            <span class="sidebar-section-title">NASA HERITAGE &amp; SHELTER SITES (CLICK TO ROUTE)</span>
+            <div id="poi-list" class="poi-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Native Modal Dialog 2: Rover Engineering Garage & Space Mission Design Workshop (Challenge #13) -->
+  <dialog id="garageDialog" closedby="any" aria-labelledby="garageDialogTitle">
+    <div class="modal-shell">
+      <header class="modal-header">
+        <div>
+          <span class="nasa-pill">CHALLENGE #13: SPACE MISSION DESIGN WORKSHOP</span>
+          <h2 id="garageDialogTitle">Octavia Base Engineering Garage — Mass, Power &amp; Mobility Trade-Offs</h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="hud-btn" autofocus>CLOSE GARAGE [ESC]</button>
+        </form>
+      </header>
+
+      <div class="garage-summary-bar">
+        <div><span>AVAILABLE SCIENCE DATA:</span> <strong id="garage-mb-balance">1,250 MB</strong></div>
+        <div><span>TOTAL ROVER MASS:</span> <strong id="garage-total-mass">1,025 kg</strong></div>
+        <div><span>MAX SAFE CLIMB SLOPE:</span> <strong id="garage-max-slope">20°</strong></div>
+        <div><span>PEAK SPEED:</span> <strong id="garage-top-speed">57 km/h</strong></div>
+      </div>
+
+      <div class="garage-grid" id="garage-grid">
+        <!-- Populated dynamically by game.js -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Native Modal Dialog 3: NASA Space Apps 2026 Judge Dossier & Live API Telemetry -->
+  <dialog id="dossierDialog" closedby="any" aria-labelledby="dossierTitle">
+    <div class="modal-shell">
+      <header class="modal-header">
+        <div>
+          <span class="nasa-pill">2026 NASA SPACE APPS CHALLENGE • "THE NEXT FRONTIER"</span>
+          <h2 id="dossierTitle">Mission Mars: Multi-Challenge Architecture &amp; Live NASA Data</h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="hud-btn" autofocus>RESUME GAME [ESC]</button>
+        </form>
+      </header>
+
+      <div class="dossier-content">
+        <div class="dossier-grid">
+          <article class="dossier-card">
+            <h3>1. Interplanetary Survival Guide: Martian Map</h3>
+            <p>
+              Synthesizes <strong>MOLA</strong> and <strong>HiRISE DEMs</strong> of Jezero Crater (18.4447°N, 77.4508°E) with a 60×60 <strong>A* Terrain Pathfinder</strong>, 3D ground chevron markers, SWIM subsurface water-ice mapping, a Lava Tube Radiation Shelter, and a full Sol Day / Blue Mie-Scattering Sunset / Night thermal cycle.
+            </p>
+          </article>
+          <article class="dossier-card">
+            <h3>2. Abandoned But Not Forgotten (Heritage)</h3>
+            <p>
+              Models 5 real human artifacts in Jezero Crater—letting astronauts inspect UV/perchlorate weathering since Feb 2021 and decide whether to <strong>Preserve as a Space Heritage Monument</strong> or <strong>Recycle Titanium &amp; Sensors</strong> for habitat survival.
+            </p>
+          </article>
+          <article class="dossier-card">
+            <h3>3. Space Mission Design &amp; Sonification</h3>
+            <p>
+              Includes the <strong>Octavia Engineering Garage</strong> (trading off MMRTG nuclear vs. triple-junction solar power, Nitinol mesh tires, and aerogel shielding), a <strong>SuperCam LIBS Atomic Spectrum Analyzer</strong>, and <strong>DSN Radio FM</strong> telemetry sonification.
+            </p>
+          </article>
+        </div>
+
+        <div class="live-api-panel">
+          <div class="live-api-header">
+            <span>📡 LIVE NASA API TELEMETRY STATUS</span>
+            <button type="button" class="hud-btn hud-btn-accent" id="btn-refresh-nasa-api">FETCH LIVE NASA MANIFEST</button>
+          </div>
+          <pre id="nasa-api-log" class="nasa-api-log">Connecting to NASA Open APIs (api.nasa.gov / Mars Rover Manifest &amp; MEDA Atmospheric Profile)...</pre>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Native Modal Dialog 4: Interactive 7-Slide NASA Space Apps Judge Pitch Deck -->
+  <dialog id="pitchDialog" closedby="any" aria-labelledby="pitchDialogTitle">
+    <div class="modal-shell">
+      <header class="modal-header">
+        <div>
+          <span class="nasa-pill">OFFICIAL 7-SLIDE SPACE APPS PRESENTATION DECK</span>
+          <h2 id="pitchDialogTitle">Mission Mars: Grand Theft Rover — Judge Pitch Deck</h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="hud-btn" autofocus>CLOSE DECK [ESC]</button>
+        </form>
+      </header>
+
+      <div class="pitch-slide-card" id="pitch-slide-card">
+        <div class="pitch-slide-top">
+          <span class="mission-tag" id="pitch-slide-num">SLIDE 01 / 07</span>
+          <span class="nasa-pill" id="pitch-slide-tag">THE PROBLEM &amp; HOOK</span>
+        </div>
+        <h3 class="pitch-slide-heading" id="pitch-slide-heading">Navigating Mars Is Lethal—And 2D Maps Don't Tell the Story</h3>
+        <div class="pitch-slide-body" id="pitch-slide-body"></div>
+      </div>
+
+      <div class="pitch-controls-row">
+        <button type="button" class="hud-btn" id="btn-pitch-prev">&larr; PREVIOUS SLIDE</button>
+        <div class="pitch-dots" id="pitch-dots"></div>
+        <button type="button" class="hud-btn hud-btn-gold" id="btn-pitch-next">NEXT SLIDE &rarr;</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Mobile / Touch Screen D-Pad & Action Buttons (Auto-shown on touch devices) -->
+  <nav class="touch-controls" id="touch-controls" aria-label="Touch Driving and Action Controls">
+    <div class="touch-dpad">
+      <button type="button" class="touch-btn" data-key="KeyW" aria-label="Drive Forward">▲</button>
+      <div class="touch-dpad-mid">
+        <button type="button" class="touch-btn" data-key="KeyA" aria-label="Steer Left">◀</button>
+        <button type="button" class="touch-btn" data-key="KeyS" aria-label="Reverse">▼</button>
+        <button type="button" class="touch-btn" data-key="KeyD" aria-label="Steer Right">▶</button>
+      </div>
+    </div>
+    <div class="touch-actions">
+      <button type="button" class="touch-btn touch-btn-gold" data-action="laser" aria-label="Fire LIBS Laser">⚡ LASER</button>
+      <button type="button" class="touch-btn touch-btn-accent" data-action="salvage" aria-label="Salvage Artifact">🔧 SALVAGE</button>
+      <button type="button" class="touch-btn" data-action="switch" aria-label="Switch Unit">🚁 UNIT</button>
+    </div>
+  </nav>
+
+  <script src="js/data.js?v=4"></script>
+  <script src="js/audio.js?v=4"></script>
+  <script src="js/world.js?v=4"></script>
+  <script src="js/game.js?v=4"></script>
+</body>
+</html>

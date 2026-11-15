@@ -1,0 +1,1371 @@
+:root {
+  --target-size: 24px;
+  --bg-dark: rgba(11, 14, 20, 0.84);
+  --bg-panel: rgba(18, 23, 33, 0.88);
+  --border-subtle: rgba(255, 138, 76, 0.32);
+  --accent-mars: #ff6b2b;
+  --accent-gold: #f5b942;
+  --accent-cyan: #38bdf8;
+  --accent-green: #4ade80;
+  --accent-purple: #c084fc;
+  --text-main: #f8fafc;
+  --text-dim: #94a3b8;
+  --font-display: 'Teko', sans-serif;
+  --font-ui: 'Chakra Petch', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --target-size: 44px;
+  }
+}
+
+:where(button, select, textarea, input:not([type="checkbox"], [type="radio"]), [role="button"], nav a) {
+  min-block-size: var(--target-size);
+  min-inline-size: var(--target-size);
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p, li {
+  text-wrap: pretty;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a0c07;
+  color: var(--text-main);
+  font-family: var(--font-ui);
+}
+
+#canvas-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  cursor: crosshair;
+}
+
+/* Judge Auto-Tour Cinematic Banner */
+.autotour-banner {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 22;
+  background: rgba(15, 23, 42, 0.94);
+  border: 2px solid var(--accent-gold);
+  border-radius: 999px;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75);
+}
+
+.autotour-banner[hidden] {
+  display: none;
+}
+
+.autotour-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: pulseStar 0.7s infinite alternate;
+}
+
+/* Center ChemCam / Visor Reticle */
+.reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reticle-ring {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 107, 43, 0.4);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.reticle.laser-firing .reticle-ring {
+  transform: scale(1.45);
+  border-color: #ff2a2a;
+  box-shadow: 0 0 22px #ff2a2a;
+}
+
+.reticle-cross-h,
+.reticle-cross-v {
+  position: absolute;
+  background: rgba(255, 107, 43, 0.75);
+}
+
+.reticle-cross-h {
+  top: 16.5px;
+  width: 12px;
+  height: 1px;
+}
+
+.reticle-cross-v {
+  top: 11px;
+  width: 1px;
+  height: 12px;
+}
+
+.reticle-label {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
+  text-shadow: 0 1px 3px #000;
+}
+
+/* Top-Left HUD */
+.hud-top-left {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-dark);
+  border-left: 4px solid var(--accent-mars);
+  padding: 6px 12px;
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+
+.nasa-pill {
+  background: linear-gradient(135deg, #0b3d91, #1e56b8);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+
+.game-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--accent-gold);
+}
+
+.game-title small {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.mission-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--accent-gold);
+  border-radius: 6px;
+  padding: 12px 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.mission-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 0.06em;
+}
+
+.mission-distance {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-purple);
+  background: rgba(192, 132, 252, 0.14);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.mission-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.mission-objective {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+
+.mission-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hud-btn {
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--text-main);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: var(--accent-mars);
+  transform: translateY(-1px);
+}
+
+.hud-btn.active,
+.hud-btn-accent {
+  background: rgba(255, 107, 43, 0.22);
+  border-color: var(--accent-mars);
+  color: #ff9e6d;
+}
+
+.hud-btn-gold {
+  background: rgba(245, 185, 66, 0.2);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.telemetry-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 6px 8px;
+  backdrop-filter: blur(8px);
+}
+
+.tele-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.tele-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.tele-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+/* Top-Right GTA Style HUD */
+.hud-top-right {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.hazard-row {
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  backdrop-filter: blur(8px);
+}
+
+.hazard-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.hazard-stars {
+  display: flex;
+  gap: 4px;
+  font-size: 23px;
+  line-height: 1.05;
+}
+
+.hazard-stars .star {
+  color: rgba(255, 255, 255, 0.18);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hazard-stars .star.active {
+  color: var(--accent-gold);
+  text-shadow: 0 0 12px rgba(245, 185, 66, 0.9);
+  animation: pulseStar 0.9s infinite alternate;
+}
+
+@keyframes pulseStar {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.14); opacity: 0.72; }
+}
+
+.stats-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.stat-money {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 0.95;
+  color: var(--accent-green);
+  text-shadow: 2px 2px 0 #000, 0 0 12px rgba(74, 222, 128, 0.35);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat-prefix {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.stat-unit {
+  font-size: 20px;
+  color: #86efac;
+}
+
+.stat-salvage {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: var(--bg-dark);
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.unit-badge-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-right: 4px solid var(--accent-cyan);
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-align: right;
+  min-width: 255px;
+  backdrop-filter: blur(8px);
+}
+
+.unit-badge-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.unit-gravity-tag {
+  color: var(--accent-mars);
+  font-weight: 700;
+}
+
+.unit-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.unit-sub {
+  font-size: 11px;
+  color: var(--accent-cyan);
+}
+
+.quick-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 390px;
+}
+
+/* Bottom-Left GTA V Tilted Radar & Vital Bars */
+.hud-bottom-left {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  width: 266px;
+}
+
+.radar-frame {
+  position: relative;
+  width: 266px;
+  height: 190px;
+  background: rgba(10, 14, 22, 0.9);
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+}
+
+.radar-frame:hover {
+  border-color: var(--accent-gold);
+}
+
+#radar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.radar-overlay-top {
+  position: absolute;
+  top: 5px;
+  left: 7px;
+  right: 7px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px #000;
+  pointer-events: none;
+}
+
+#radar-gps-dist {
+  color: var(--accent-purple);
+}
+
+.radar-compass {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.vital-bars {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 3px;
+  background: #05070b;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+}
+
+.vital-bar-wrap {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.vital-bar {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.vital-health { background: var(--accent-green); }
+.vital-battery { background: var(--accent-cyan); }
+.vital-o2 { background: var(--accent-mars); }
+
+.vital-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  padding: 0 2px;
+}
+
+/* Bottom-Right Speedometer & Controls */
+.hud-bottom-right {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.speedo-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 14px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+
+.speedo-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.speedo-val {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 0.9;
+  color: #fff;
+}
+
+.speedo-unit {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-mars);
+}
+
+.speedo-meta {
+  display: flex;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.controls-bar kbd {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-gold);
+}
+
+/* Context Action Prompt */
+.context-prompt {
+  position: fixed;
+  bottom: 125px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  background: rgba(10, 14, 22, 0.94);
+  border: 2px solid var(--accent-gold);
+  border-radius: 6px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+}
+
+.context-prompt[hidden] {
+  display: none;
+}
+
+.key-cap {
+  background: var(--accent-gold);
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+/* Upgraded ChemCam LIBS Spectral Graph + Mastcam-Z Picture-in-Picture */
+.scan-toast {
+  position: fixed;
+  top: 56%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 14;
+  background: rgba(10, 16, 28, 0.94);
+  border: 1px solid var(--accent-cyan);
+  border-left: 4px solid var(--accent-cyan);
+  padding: 10px 14px;
+  border-radius: 6px;
+  min-width: 410px;
+  pointer-events: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+}
+
+.scan-toast[hidden] {
+  display: none;
+}
+
+.scan-toast-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mastcam-pip {
+  position: relative;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+#mastcam-canvas {
+  display: block;
+}
+
+.pip-label {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--accent-gold);
+  text-shadow: 0 1px 2px #000;
+}
+
+.scan-info-col {
+  flex: 1;
+}
+
+.scan-toast-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+  margin-bottom: 2px;
+}
+
+.scan-target-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.scan-composition {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+  margin-bottom: 5px;
+}
+
+#libs-spectrum-canvas {
+  width: 100%;
+  height: 54px;
+  background: rgba(4, 8, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  display: block;
+}
+
+/* GTA V Mission Passed + Heritage vs Salvage Decision */
+.mission-passed-overlay,
+.wasted-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.78) 0%, rgba(0, 0, 0, 0.92) 100%);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.mission-passed-overlay[hidden],
+.wasted-overlay[hidden] {
+  display: none;
+}
+
+.mp-inner,
+.wasted-inner {
+  max-width: 640px;
+  text-align: center;
+  padding: 26px 32px;
+  background: rgba(15, 20, 30, 0.96);
+  border-top: 4px solid var(--accent-gold);
+  border-bottom: 4px solid var(--accent-gold);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+}
+
+.wasted-inner {
+  border-color: #ef4444;
+}
+
+.mp-title {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 0.9;
+  color: var(--accent-gold);
+  text-shadow: 0 4px 20px rgba(245, 185, 66, 0.55);
+  letter-spacing: 0.04em;
+}
+
+.wasted-title {
+  font-family: var(--font-display);
+  font-size: 74px;
+  line-height: 0.9;
+  color: #ef4444;
+  text-shadow: 0 4px 25px rgba(239, 68, 68, 0.7);
+  letter-spacing: 0.06em;
+}
+
+.wasted-sub {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #fca5a5;
+  margin: 12px 0 20px;
+}
+
+.mp-subtitle {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.mp-respect {
+  font-family: var(--font-display);
+  font-size: 25px;
+  color: var(--accent-green);
+  margin: 6px 0 10px;
+  letter-spacing: 0.06em;
+}
+
+.weathering-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.w-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 6px 8px;
+}
+
+.w-stat span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+}
+
+.w-stat strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-cyan);
+}
+
+.mp-fact {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.mp-choice-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mp-choice-btn {
+  padding: 10px 14px;
+  font-size: 11.5px;
+}
+
+.mp-continue-btn {
+  font-size: 13px;
+  padding: 10px 22px;
+}
+
+/* GTA V Character/Vehicle Switch Wheel */
+.switch-wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: rgba(8, 12, 20, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.switch-wheel-overlay[hidden] {
+  display: none;
+}
+
+.wheel-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+}
+
+.wheel-grid {
+  display: flex;
+  gap: 16px;
+}
+
+.wheel-segment {
+  width: 190px;
+  background: rgba(20, 28, 42, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 18px 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.wheel-segment:hover,
+.wheel-segment.active {
+  border-color: var(--accent-gold);
+  background: rgba(255, 107, 43, 0.22);
+  transform: scale(1.06);
+}
+
+.wheel-key {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-gold);
+}
+
+.wheel-icon {
+  font-size: 36px;
+}
+
+.wheel-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.04em;
+}
+
+.wheel-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.wheel-hint {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+/* Native <dialog> Modals (Following modern-web-guidance) */
+dialog {
+  margin: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: #0f1623;
+  color: var(--text-main);
+  max-width: 980px;
+  width: 92vw;
+  max-height: 88vh;
+  padding: 0;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+}
+
+/* MANDATORY scroll containment rules from modern-web-guidance */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(5, 8, 15, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.modal-shell {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+}
+
+.modal-header h2 {
+  font-size: 22px;
+  margin-top: 6px;
+  color: #fff;
+}
+
+.map-modal-body {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+.tactical-map-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#tactical-map-canvas {
+  width: 100%;
+  height: auto;
+  border: 2px solid rgba(255, 138, 76, 0.4);
+  border-radius: 6px;
+  background: #120b07;
+  cursor: crosshair;
+}
+
+.map-click-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.tactical-map-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sidebar-section-title {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+  letter-spacing: 0.06em;
+}
+
+.layer-btn-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.route-telemetry-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.route-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.route-stat-grid span {
+  color: var(--text-dim);
+  display: block;
+  font-size: 10.5px;
+}
+
+.poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 230px;
+  overflow-y: auto;
+}
+
+.poi-item {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 8px 10px;
+  text-align: left;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.15s ease;
+}
+
+.poi-item:hover {
+  border-color: var(--accent-gold);
+}
+
+.poi-item-title {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.poi-item-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+}
+
+/* Rover Engineering Garage Modal (#garageDialog) */
+.garage-summary-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.garage-summary-bar span {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.garage-summary-bar strong {
+  color: var(--accent-gold);
+  font-size: 15px;
+}
+
+.garage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.garage-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.garage-card.installed {
+  border-color: var(--accent-green);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.garage-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.garage-cat {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+  letter-spacing: 0.06em;
+}
+
+.garage-cost {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.garage-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 4px 0;
+}
+
+.garage-desc {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+
+.garage-specs {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #86efac;
+}
+
+.dossier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.dossier-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.dossier-card h3 {
+  font-size: 15px;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.dossier-card p {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+
+.live-api-panel {
+  background: #080c14;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.live-api-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-cyan);
+  margin-bottom: 8px;
+}
+
+.nasa-api-log {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: #86efac;
+  white-space: pre-wrap;
+  max-height: 165px;
+  overflow-y: auto;
+}
+
+/* 7-Slide Judge Pitch Deck Modal (#pitchDialog) */
+.pitch-slide-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(245, 185, 66, 0.35);
+  border-left: 5px solid var(--accent-gold);
+  border-radius: 8px;
+  padding: 22px 26px;
+  min-block-size: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pitch-slide-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pitch-slide-heading {
+  font-size: 22px;
+  color: #fff;
+}
+
+.pitch-slide-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pitch-slide-body ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pitch-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pitch-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.pitch-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  cursor: pointer;
+}
+
+.pitch-dot.active {
+  background: var(--accent-gold);
+  transform: scale(1.25);
+}
+
+/* Touch Controls (Visible on touch screens via pointer: coarse) */
+.touch-controls {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 18;
+  display: none;
+  align-items: flex-end;
+  gap: 24px;
+  pointer-events: auto;
+}
+
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+
+.touch-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.touch-dpad-mid {
+  display: flex;
+  gap: 6px;
+}
+
+.touch-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.touch-btn {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.touch-btn-gold {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.touch-btn-accent {
+  border-color: var(--accent-mars);
+  color: var(--accent-mars);
+}
+

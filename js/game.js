@@ -25,7 +25,7 @@
     health: 100,
     battery: 100,
     o2: 100,
-    tacticalLayer: 'mola',
+    tacticalLayer: 'hirise',
     currentRoute: null,
     skyTransition: null,
     lastTrackPos: { x: 0, z: 0 },
@@ -143,8 +143,8 @@
     btn.classList.toggle('active', state.headlightsOn);
   }
 
-  // Draw Real-Time LIBS Atomic Spectrum + Mastcam-Z False-Color PIP
-  function renderLibsSpectrumAndPip(targetName, peaks, isArtifact) {
+  // Draw Real-Time LIBS Atomic Spectrum + Mastcam-Z PIP (with Real NASA Perseverance Imagery!)
+  function renderLibsSpectrumAndPip(targetName, peaks, artifactMissionId) {
     // 1. LIBS Atomic Spectrum Graph (240nm - 850nm)
     const specCanvas = document.getElementById('libs-spectrum-canvas');
     const sCtx = specCanvas.getContext('2d');
@@ -191,37 +191,46 @@
       sCtx.fillText(`${pk.el}`, Math.max(4, Math.min(w - 28, px - 8)), 11);
     });
 
-    // 2. Mastcam-Z False-Color Micro-Imager PIP
+    // 2. Mastcam-Z Micro-Imager PIP (Draws Real NASA Perseverance/Ingenuity Photo if loaded)
     const pipCanvas = document.getElementById('mastcam-canvas');
     const pCtx = pipCanvas.getContext('2d');
     const pw = pipCanvas.width;
     const ph = pipCanvas.height;
 
-    const grad = pCtx.createLinearGradient(0, 0, pw, ph);
-    if (isArtifact) {
-      grad.addColorStop(0, '#1e293b');
-      grad.addColorStop(1, '#7c2d12');
-    } else {
-      grad.addColorStop(0, '#6e3019');
-      grad.addColorStop(1, '#29150c');
-    }
-    pCtx.fillStyle = grad;
-    pCtx.fillRect(0, 0, pw, ph);
+    const photoKey = artifactMissionId && MarsData.realPhotos[artifactMissionId]
+      ? artifactMissionId
+      : 'rock_outcrop';
+    const realEntry = MarsData.realPhotos[photoKey];
 
-    // Draw mineral grains / laser ablation pit
-    for (let i = 0; i < 28; i++) {
-      pCtx.fillStyle = i % 3 === 0 ? 'rgba(56, 189, 248, 0.5)' : 'rgba(245, 185, 66, 0.4)';
-      pCtx.beginPath();
-      pCtx.arc(
-        (Math.sin(i * 7.3) * 0.4 + 0.5) * pw,
-        (Math.cos(i * 4.1) * 0.4 + 0.5) * ph,
-        1.5 + (i % 3),
-        0,
-        Math.PI * 2
-      );
-      pCtx.fill();
+    if (realEntry && realEntry.img) {
+      pCtx.drawImage(realEntry.img, 0, 0, pw, ph);
+    } else {
+      const grad = pCtx.createLinearGradient(0, 0, pw, ph);
+      if (artifactMissionId) {
+        grad.addColorStop(0, '#1e293b');
+        grad.addColorStop(1, '#7c2d12');
+      } else {
+        grad.addColorStop(0, '#6e3019');
+        grad.addColorStop(1, '#29150c');
+      }
+      pCtx.fillStyle = grad;
+      pCtx.fillRect(0, 0, pw, ph);
+
+      for (let i = 0; i < 28; i++) {
+        pCtx.fillStyle = i % 3 === 0 ? 'rgba(56, 189, 248, 0.5)' : 'rgba(245, 185, 66, 0.4)';
+        pCtx.beginPath();
+        pCtx.arc(
+          (Math.sin(i * 7.3) * 0.4 + 0.5) * pw,
+          (Math.cos(i * 4.1) * 0.4 + 0.5) * ph,
+          1.5 + (i % 3),
+          0,
+          Math.PI * 2
+        );
+        pCtx.fill();
+      }
     }
-    // Red LIBS laser plasma spot at center
+
+    // Red LIBS laser plasma target reticle at center
     pCtx.strokeStyle = '#ff2a2a';
     pCtx.lineWidth = 1.5;
     pCtx.beginPath();
@@ -556,7 +565,7 @@
       renderLibsSpectrumAndPip(
         bestTarget.userData.name,
         bestTarget.userData.peaks,
-        Boolean(bestTarget.userData.missionId)
+        bestTarget.userData.missionId || null
       );
       state.scienceMB += 30 * bonusMultiplier;
       document.getElementById('stat-science').textContent = state.scienceMB.toLocaleString();
@@ -572,7 +581,7 @@
         { nm: 404, el: 'Fe', amp: 0.91 },
         { nm: 589, el: 'Na', amp: 0.52 },
         { nm: 656, el: 'H₂O', amp: 0.44 }
-      ], false);
+      ], null);
     }
 
     if (scanToastTimeout) clearTimeout(scanToastTimeout);
@@ -596,6 +605,17 @@
         document.getElementById('w-dust').textContent = m.dustCoat;
         document.getElementById('w-pit').textContent = m.pitting;
         document.getElementById('mp-nasa-fact').textContent = m.nasaFact;
+
+        // Populate Real NASA Perseverance / Ingenuity Photograph in Inspection Modal
+        const photoEntry = MarsData.realPhotos[m.id];
+        const photoEl = document.getElementById('mp-real-photo');
+        const capEl = document.getElementById('mp-photo-caption');
+        if (photoEl && photoEntry) {
+          photoEl.src = photoEntry.url;
+          photoEl.alt = photoEntry.caption;
+          if (capEl) capEl.textContent = photoEntry.caption;
+        }
+
         document.getElementById('mission-passed-overlay').hidden = false;
         return;
       }
@@ -684,6 +704,21 @@
     rCtx.rotate(u.yaw - Math.PI);
 
     const scale = 0.36;
+    const satImg = MarsData.getRealSatelliteImage();
+    if (satImg) {
+      const worldPx = MarsData.WORLD_SIZE * scale;
+      const halfPx = worldPx / 2;
+      rCtx.globalAlpha = 0.42;
+      rCtx.drawImage(
+        satImg,
+        -halfPx - u.x * scale,
+        -halfPx - u.z * scale,
+        worldPx,
+        worldPx
+      );
+      rCtx.globalAlpha = 1.0;
+    }
+
     const step = 30;
     const range = 240;
     const baseX = Math.floor(u.x / step) * step;
@@ -780,33 +815,40 @@
     const toPxX = (wx) => ((wx + half) / MarsData.WORLD_SIZE) * w;
     const toPxY = (wz) => ((wz + half) / MarsData.WORLD_SIZE) * h;
 
-    const cell = 8;
-    for (let py = 0; py < h; py += cell) {
-      for (let px = 0; px < w; px += cell) {
-        const wx = (px / w) * MarsData.WORLD_SIZE - half;
-        const wz = (py / h) * MarsData.WORLD_SIZE - half;
+    const satImg = MarsData.getRealSatelliteImage();
+    if (state.tacticalLayer === 'hirise' && satImg) {
+      tCtx.drawImage(satImg, 0, 0, w, h);
+      tCtx.fillStyle = 'rgba(180, 75, 35, 0.22)';
+      tCtx.fillRect(0, 0, w, h);
+    } else {
+      const cell = 8;
+      for (let py = 0; py < h; py += cell) {
+        for (let px = 0; px < w; px += cell) {
+          const wx = (px / w) * MarsData.WORLD_SIZE - half;
+          const wz = (py / h) * MarsData.WORLD_SIZE - half;
 
-        if (state.tacticalLayer === 'mola') {
-          const elev = MarsData.getTerrainHeight(wx, wz);
-          const norm = Math.max(0, Math.min(1, (elev + 12) / 45));
-          const r = Math.round(95 + norm * 135);
-          const g = Math.round(42 + norm * 75);
-          const b = Math.round(25 + norm * 45);
-          tCtx.fillStyle = `rgb(${r},${g},${b})`;
-        } else if (state.tacticalLayer === 'slope') {
-          const slope = MarsData.getTerrainSlope(wx, wz);
-          if (slope > 18) tCtx.fillStyle = '#ef4444';
-          else if (slope > 12) tCtx.fillStyle = '#f59e0b';
-          else tCtx.fillStyle = '#1e293b';
-        } else {
-          const ice = MarsData.getWaterIceDepth(wx, wz);
-          const norm = 1 - Math.min(1, ice / 9.5);
-          const r = Math.round(15 + norm * 25);
-          const g = Math.round(45 + norm * 145);
-          const b = Math.round(95 + norm * 155);
-          tCtx.fillStyle = `rgb(${r},${g},${b})`;
+          if (state.tacticalLayer === 'mola' || state.tacticalLayer === 'hirise') {
+            const elev = MarsData.getTerrainHeight(wx, wz);
+            const norm = Math.max(0, Math.min(1, (elev + 12) / 45));
+            const r = Math.round(95 + norm * 135);
+            const g = Math.round(42 + norm * 75);
+            const b = Math.round(25 + norm * 45);
+            tCtx.fillStyle = `rgb(${r},${g},${b})`;
+          } else if (state.tacticalLayer === 'slope') {
+            const slope = MarsData.getTerrainSlope(wx, wz);
+            if (slope > 18) tCtx.fillStyle = '#ef4444';
+            else if (slope > 12) tCtx.fillStyle = '#f59e0b';
+            else tCtx.fillStyle = '#1e293b';
+          } else {
+            const ice = MarsData.getWaterIceDepth(wx, wz);
+            const norm = 1 - Math.min(1, ice / 9.5);
+            const r = Math.round(15 + norm * 25);
+            const g = Math.round(45 + norm * 145);
+            const b = Math.round(95 + norm * 155);
+            tCtx.fillStyle = `rgb(${r},${g},${b})`;
+          }
+          tCtx.fillRect(px, py, cell, cell);
         }
-        tCtx.fillRect(px, py, cell, cell);
       }
     }
 
@@ -1520,6 +1562,17 @@
   }
 
   setMission(0);
+  MarsData.loadRealNasaAssets((orbitalImg) => {
+    world.applyRealSatelliteTexture(orbitalImg);
+    Object.values(state.units).forEach((u) => {
+      u.y = MarsData.getTerrainHeight(u.x, u.z);
+      u.mesh.position.y = u.y;
+    });
+    const m = MarsData.MISSIONS[state.currentMissionIdx];
+    updateRouteToGoal(m.x, m.z);
+    renderTacticalMap();
+    MarsData.fetchLiveNasaTelemetry();
+  });
   MarsData.fetchLiveNasaTelemetry();
   requestAnimationFrame(animate);
 })();

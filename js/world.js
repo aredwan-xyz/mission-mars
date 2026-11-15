@@ -127,6 +127,43 @@ function createMarsWorld(container) {
   terrainMesh.receiveShadow = true;
   scene.add(terrainMesh);
 
+  // Dynamically apply Real NASA HiRISE/CTX Satellite Orthomosaic & DEM Relief to 3D Terrain
+  function applyRealSatelliteTexture(orbitalImg) {
+    if (!orbitalImg) return;
+    // Update vertex heights from newly sampled 128x128 DEM matrix
+    for (let i = 0; i < posAttr.count; i++) {
+      const vx = posAttr.getX(i);
+      const vz = posAttr.getZ(i);
+      posAttr.setY(i, MarsData.getTerrainHeight(vx, vz));
+    }
+    posAttr.needsUpdate = true;
+    terrainGeo.computeVertexNormals();
+
+    // Create Mars-tinted satellite texture canvas so vertex colors and orbital features blend cleanly
+    const satCanvas = document.createElement('canvas');
+    satCanvas.width = 512;
+    satCanvas.height = 512;
+    const sCtx = satCanvas.getContext('2d');
+    sCtx.drawImage(orbitalImg, 0, 0, 512, 512);
+    sCtx.fillStyle = 'rgba(195, 92, 50, 0.28)';
+    sCtx.fillRect(0, 0, 512, 512);
+
+    const satTexture = new THREE.CanvasTexture(satCanvas);
+    terrainMat.map = satTexture;
+    terrainMat.needsUpdate = true;
+
+    // Refresh static monument & rock Y positions
+    baseGroup.position.y = MarsData.getTerrainHeight(0, -25);
+    shelterGroup.position.y = MarsData.getTerrainHeight(MarsData.SHELTER_SITE.x, MarsData.SHELTER_SITE.z);
+    artifactMeshes.forEach((a) => {
+      a.group.position.y = MarsData.getTerrainHeight(a.mission.x, a.mission.z);
+    });
+    scannableRocks.forEach((r) => {
+      const ry = MarsData.getTerrainHeight(r.position.x, r.position.z);
+      r.position.y = ry + r.scale.y * 0.45;
+    });
+  }
+
   // 2. Octavia E. Butler Base Habitat & Engineering Garage Pad near (0, -25)
   const baseGroup = new THREE.Group();
   const baseY = MarsData.getTerrainHeight(0, -25);
@@ -661,6 +698,7 @@ function createMarsWorld(container) {
     gpsChevronsGroup,
     updateGpsChevrons,
     addRoverTrack,
+    applyRealSatelliteTexture,
     laserLine,
     dustParticles
   };

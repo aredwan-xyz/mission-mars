@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=JetBrains+Mono:wght@400;600;700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
@@ -238,7 +238,13 @@
         <div class="w-stat"><span>Micrometeorite Pitting</span><strong id="w-pit">Low (Intact)</strong></div>
       </div>
 
-      <p class="mp-fact" id="mp-nasa-fact"></p>
+      <div class="mp-photo-row" id="mp-photo-row">
+        <div class="mp-photo-box">
+          <img id="mp-real-photo" alt="Official NASA Mars 2020 Artifact Photograph" />
+          <span class="mp-photo-caption" id="mp-photo-caption">LIVE NASA IMAGE ARCHIVE (images-api.nasa.gov)</span>
+        </div>
+        <p class="mp-fact" id="mp-nasa-fact"></p>
+      </div>
 
       <div class="mp-choice-row" id="mp-choice-row">
         <button type="button" class="hud-btn hud-btn-accent mp-choice-btn" id="btn-choice-preserve">
@@ -366,7 +372,8 @@
           <div class="layer-selector">
             <span class="sidebar-section-title">NASA DATA OVERLAY LAYER</span>
             <div class="layer-btn-group">
-              <button type="button" class="hud-btn active" data-layer="mola">MOLA Elevation</button>
+              <button type="button" class="hud-btn active" data-layer="hirise">🛰️ HiRISE Satellite</button>
+              <button type="button" class="hud-btn" data-layer="mola">MOLA Elevation</button>
               <button type="button" class="hud-btn" data-layer="slope">Slope Hazard (&gt;18°)</button>
               <button type="button" class="hud-btn" data-layer="ice">SWIM Water-Ice</button>
             </div>
@@ -510,9 +517,9 @@
     </div>
   </nav>
 
-  <script src="js/data.js?v=5"></script>
-  <script src="js/audio.js?v=5"></script>
-  <script src="js/world.js?v=5"></script>
-  <script src="js/game.js?v=5"></script>
+  <script src="js/data.js?v=6"></script>
+  <script src="js/audio.js?v=6"></script>
+  <script src="js/world.js?v=6"></script>
+  <script src="js/game.js?v=6"></script>
 </body>
 </html>

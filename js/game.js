@@ -6,6 +6,8 @@
 
   // Game State
   const state = {
+    welcomeActive: true,
+    selectedStartUnit: 'rover',
     activeUnit: 'rover', // 'rover' | 'heli' | 'astro'
     scienceMB: 1250,
     completedMissions: new Set(),
@@ -359,11 +361,60 @@
       }
     }
     if (code === 'Enter') {
+      if (state.welcomeActive) {
+        dismissWelcomeScreen('play');
+        return;
+      }
       const wastedOverlay = document.getElementById('wasted-overlay');
       if (!wastedOverlay.hidden) {
         recoverToOctaviaBase();
       }
     }
+  });
+
+  // Welcome Screen Unit Picker & Launch Handlers
+  function dismissWelcomeScreen(mode) {
+    const welcomeEl = document.getElementById('welcome-screen');
+    if (welcomeEl && !welcomeEl.hidden) {
+      welcomeEl.hidden = true;
+    }
+    state.welcomeActive = false;
+    MarsAudio.playSwitchWhoosh();
+
+    const target = state.selectedStartUnit || 'rover';
+    if (target !== state.activeUnit) {
+      switchUnit(target);
+    } else {
+      const u = state.units[state.activeUnit];
+      state.skyTransition = {
+        t: 0,
+        from: new THREE.Vector3(u.x - 25, u.y + 65, u.z - 25),
+        to: new THREE.Vector3(u.x, u.y, u.z)
+      };
+    }
+
+    if (mode === 'autotour') {
+      toggleAutoTour(true);
+    }
+  }
+
+  document.querySelectorAll('[data-start-unit]').forEach((card) => {
+    card.addEventListener('click', () => {
+      state.selectedStartUnit = card.dataset.startUnit;
+      document.querySelectorAll('[data-start-unit]').forEach((c) =>
+        c.classList.toggle('active', c === card)
+      );
+    });
+  });
+
+  document.getElementById('btn-start-game')?.addEventListener('click', () => {
+    dismissWelcomeScreen('play');
+  });
+  document.getElementById('btn-welcome-autotour')?.addEventListener('click', () => {
+    dismissWelcomeScreen('autotour');
+  });
+  document.getElementById('btn-welcome-pitch')?.addEventListener('click', () => {
+    openPitchModal();
   });
 
   window.addEventListener('keyup', (e) => {
@@ -1407,8 +1458,15 @@
     }
     promptEl.hidden = !showPrompt;
 
-    // Camera Update (with GTA V Sky-Camera Zoom Transition)
-    if (state.skyTransition) {
+    // Camera Update (Orbital Welcome Screen -> GTA V Sky-Camera Zoom -> Follow Cam)
+    if (state.welcomeActive) {
+      const orbitAngle = now * 0.00028;
+      const ox = Math.cos(orbitAngle) * 34;
+      const oz = Math.sin(orbitAngle) * 34;
+      const oy = MarsData.getTerrainHeight(ox, oz) + 19;
+      world.camera.position.set(ox, oy, oz);
+      world.camera.lookAt(0, MarsData.getTerrainHeight(0, 0) + 1.8, 0);
+    } else if (state.skyTransition) {
       state.skyTransition.t += dt * 1.45;
       const t = state.skyTransition.t;
       if (t >= 1) {
@@ -1423,9 +1481,7 @@
         world.camera.position.set(lerpPos.x - 10, lerpPos.y + 8 + skyArc, lerpPos.z - 10);
         world.camera.lookAt(lerpPos.x, lerpPos.y + 1.5, lerpPos.z);
       }
-    }
-
-    if (!state.skyTransition) {
+    } else {
       const camDist = state.activeUnit === 'heli' ? 11.5 : state.activeUnit === 'rover' ? 9.5 : 6.2;
       const camHeight = state.activeUnit === 'heli' ? 4.8 : state.activeUnit === 'rover' ? 4.2 : 2.8;
       const desiredCamX = u.x - Math.sin(u.yaw) * camDist;

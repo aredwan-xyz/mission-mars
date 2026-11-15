@@ -7,12 +7,65 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,700&family=JetBrains+Mono:wght@400;600;700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
   <!-- 3D WebGL Viewport -->
   <div id="canvas-container" aria-label="3D Interactive Martian Open World"></div>
+
+  <!-- GTA V x NASA Mars 2026 Cinematic Welcome / Title Screen -->
+  <section id="welcome-screen" class="welcome-screen" aria-labelledby="welcome-title">
+    <div class="welcome-card">
+      <div class="welcome-top-badges">
+        <span class="nasa-pill">2026 NASA SPACE APPS CHALLENGE • "THE NEXT FRONTIER"</span>
+        <span class="welcome-coords">JEZERO CRATER • 18.4447°N, 77.4508°E</span>
+      </div>
+
+      <h1 id="welcome-title" class="welcome-logo">
+        MISSION MARS <span>GRAND THEFT ROVER</span>
+      </h1>
+      <p class="welcome-tagline">
+        An Open-World 3D Martian Survival, Slope-Safe A* Navigation &amp; Space Archaeology Sandbox Powered by Real NASA MOLA, HiRISE, SWIM &amp; SuperCam Datasets.
+      </p>
+
+      <div class="welcome-unit-picker" role="group" aria-label="Choose Starting NASA Unit">
+        <button type="button" class="welcome-unit-card active" data-start-unit="rover">
+          <span class="wu-icon">🛞</span>
+          <span class="wu-title">PERSEVERANCE ROVER</span>
+          <span class="wu-sub">6×6 Rocker-Bogie &bull; SuperCam LIBS Laser</span>
+        </button>
+        <button type="button" class="welcome-unit-card" data-start-unit="heli">
+          <span class="wu-icon">🚁</span>
+          <span class="wu-title">INGENUITY COPTER</span>
+          <span class="wu-sub">Coaxial Rotorcraft &bull; Aerial Crater Recon</span>
+        </button>
+        <button type="button" class="welcome-unit-card" data-start-unit="astro">
+          <span class="wu-icon">🧑‍🚀</span>
+          <span class="wu-title">CMDR. VAL (EVA)</span>
+          <span class="wu-sub">0.38g On-Foot &bull; Hardware Salvage</span>
+        </button>
+      </div>
+
+      <div class="welcome-pillars">
+        <div><strong>🗺️ Challenge #11:</strong> 60×60 MOLA/HiRISE DEM + 3D A* Slope-Safe GPS Chevrons</div>
+        <div><strong>🛰️ Challenge #1:</strong> Locate &amp; Preserve/Salvage 5 Real Discarded NASA Artifacts</div>
+        <div><strong>🔧 Challenge #13 &amp; #14:</strong> Nitinol Rover Garage + DSN Radio FM Sonification</div>
+      </div>
+
+      <div class="welcome-cta-row">
+        <button type="button" class="welcome-btn-primary" id="btn-start-game" autofocus>
+          🚀 DEPLOY TO JEZERO CRATER [ENTER]
+        </button>
+        <button type="button" class="welcome-btn-secondary" id="btn-welcome-autotour">
+          🎬 60s JUDGE AUTO-TOUR [P]
+        </button>
+        <button type="button" class="welcome-btn-secondary" id="btn-welcome-pitch">
+          📊 7-SLIDE PITCH DECK [I]
+        </button>
+      </div>
+    </div>
+  </section>
 
   <!-- ChemCam / Visor Reticle & Scan Overlay -->
   <div id="reticle" class="reticle">
@@ -457,9 +510,9 @@
     </div>
   </nav>
 
-  <script src="js/data.js?v=4"></script>
-  <script src="js/audio.js?v=4"></script>
-  <script src="js/world.js?v=4"></script>
-  <script src="js/game.js?v=4"></script>
+  <script src="js/data.js?v=5"></script>
+  <script src="js/audio.js?v=5"></script>
+  <script src="js/world.js?v=5"></script>
+  <script src="js/game.js?v=5"></script>
 </body>
 </html>

@@ -516,10 +516,10 @@ async function fetchLiveNasaTelemetry() {
     return m;
   } catch (err) {
     const fallbackMsg = [
-      `✅ NASA IMAGES & PDS ARCHIVE CONNECTED (images-api.nasa.gov Active | DEMO_KEY Fallback)`,
+      `✅ NASA IMAGE LIBRARY CONNECTED (images-api.nasa.gov) | Mars Rover Photos API offline — showing archived mission reference values`,
       `• Rover: Perseverance (Mars 2020) | Location: Jezero Crater Western Rim & Neretva Vallis`,
       `• Real NASA Photographs Loaded (${loadedCount}/7): ${loadedIds}`,
-      `• HiRISE/CTX Orbital DEM Sampler: ${realDemLoaded ? 'ACTIVE (128x128 Luminance Relief Matrix)' : 'MOLA Analytical Baseline'}`,
+      `• HiRISE/CTX Orbital DEM Sampler: ${realDemLoaded ? 'ACTIVE (128x128 orbital-mosaic luminance relief texture)' : 'MOLA Analytical Baseline'}`,
       `• MEDA Atmospheric Pressure: 742.4 Pa (CO₂ 95.3%, N₂ 2.6%, Ar 1.9%)`,
       `• Surface Temperature Range: -18°C (Daytime Noon) to -86°C (Nighttime Minimum)`
     ].join('\n');

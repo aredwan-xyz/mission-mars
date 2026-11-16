@@ -1006,9 +1006,9 @@
       </ul>`
     },
     {
-      tag: 'SLIDE 4: MULTI-UNIT GTA V SKY-CAM & 0.38G PHYSICS',
+      tag: 'SLIDE 4: MULTI-UNIT SKY-CAM & 0.38G PHYSICS',
       title: 'Three Playable NASA Units in One Seamless World',
-      html: `<p>Using an instant GTA V-inspired Sky-Camera transition ([1], [2], [3] or [TAB]), players command three distinct exploration modes:</p>
+      html: `<p>Using an instant orbital Sky-Camera transition ([1], [2], [3] or [TAB]), players command three distinct exploration modes:</p>
       <ul>
         <li><strong>Perseverance Rover (6×6):</strong> Rocker-bogie pitch/roll physics, persistent wheel tracks in regolith, and a live <strong>SuperCam LIBS Laser Spectrometer</strong>.</li>
         <li><strong>Ingenuity Mars Helicopter:</strong> Coaxial counter-rotating flight above steep crater cliffs and sand dunes.</li>
@@ -1235,7 +1235,7 @@
         if (prevTimer < 15.0 && state.autoTourTimer >= 15.0 && state.activeUnit === 'rover') {
           switchUnit('heli');
           document.getElementById('autotour-status').textContent =
-            'JUDGE AUTO-TOUR: GTA Sky-Cam Transition to Ingenuity Coaxial Mars Helicopter';
+            'JUDGE AUTO-TOUR: Sky-Cam Transition to Ingenuity Coaxial Mars Helicopter';
         }
 
         // Steer along current A* GPS path

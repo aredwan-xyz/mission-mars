@@ -2,7 +2,7 @@
 
 **2026 NASA International Space Apps Challenge ("The Next Frontier")**
 
-▶ **Play it live:** https://mission-mars-ashen.vercel.app (Chrome/Edge desktop recommended. Press `P` for the autonomous Judge Auto-Tour.)
+▶ **Play it live:** https://mission-mars-game.vercel.app (Chrome/Edge desktop recommended. Press `P` for the autonomous Judge Auto-Tour.)
 - **Primary Challenge:** *Interplanetary Survival Guide: Martian Map*
 - **Cross-Cutting Challenges:**
   - *Abandoned but not Forgotten: Storytelling about NASA's Discarded Equipment on the Moon and Mars*
